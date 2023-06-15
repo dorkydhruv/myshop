@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:myshop/widgets/cart_item.dart';
 
 import 'package:provider/provider.dart';
-import '../widgets/cart_item.dart' as ci;
-import '../providers/carts.dart';
+import '../providers/carts.dart' as ci;
+// import '../providers/carts.dart';
+import '../providers/orders.dart';
 
 class CartScreen extends StatelessWidget {
   //const CartScreen({super.key});
@@ -10,10 +12,10 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cart = Provider.of<Cart>(context);
+    final cart = Provider.of<ci.Cart>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text('your Cart')),
+      appBar: AppBar(title: const Text('your Cart')),
       body: Column(
         children: [
           Card(
@@ -30,27 +32,33 @@ class CartScreen extends StatelessWidget {
                   Spacer(),
                   Chip(
                     label: Text(
-                      '\$${cart.totalAmount}',
+                      '\$${cart.totalAmount.toStringAsFixed(2)}',
                       style: TextStyle(color: Colors.green[400]),
                     ),
                     backgroundColor: Theme.of(context).canvasColor,
                   ),
                   TextButton(
-                    onPressed: () {},
-                    child: Text('Order Now!'),
+                    onPressed: () {
+                      Provider.of<Orders>(context, listen: false).addOrder(
+                        cart.items.values.toList(),
+                        cart.totalAmount,
+                      );
+                      cart.clearCart();
+                    },
+                    child: const Text('Order Now!'),
                   )
                 ],
               ),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 10,
           ),
           Expanded(
               child: ListView.builder(
             itemCount: cart.itemCount,
             itemBuilder: (_, i) {
-              return ci.CartItem(
+              return CartItems(
                   id: cart.items.values.toList()[i].id,
                   cartid: cart.items.keys.toList()[i],
                   price: cart.items.values.toList()[i].price,
