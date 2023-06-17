@@ -45,12 +45,40 @@ class Products with ChangeNotifier {
     return _items.where((element) => element.isFavorite).toList();
   }
 
-  Product findById(id) {
-    return items.firstWhere((element) => element.id == id);
+  Product? findById(String id) {
+    try {
+      return _items.firstWhere((prod) => prod.id == id);
+    } catch (e) {
+      print('Product with ID $id not found.');
+      return null;
+    }
   }
 
-  void addProduct() {
-    //_items.add(value);
+  void addProduct(Product product) {
+    final newProduct = Product(
+        id: DateTime.now().toString(),
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl);
+    _items.add(newProduct);
+    notifyListeners();
+  }
+
+  void updateProduct(String id, Product newProduct) {
+    final prodIndex = _items.indexWhere(
+      (prod) => prod.id == id,
+    );
+    if (prodIndex >= 0) {
+      _items[prodIndex] = newProduct;
+      notifyListeners();
+    } else {
+      print('.....');
+    }
+  }
+
+  void deleteProduct(String id) {
+    _items.where((prod) => prod.id == id);
     notifyListeners();
   }
 }
