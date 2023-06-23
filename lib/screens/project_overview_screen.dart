@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+// import 'package:http/http.dart' as http;
 import 'package:myshop/providers/carts.dart';
 import 'package:myshop/screens/cart_screen.dart';
 import 'package:myshop/widgets/AppDrawer.dart';
 import 'package:provider/provider.dart';
+import '../providers/products_provider.dart';
 import '../widgets/207 badge.dart';
 import '../widgets/products_grid.dart';
 
@@ -15,6 +17,26 @@ class ProductOverViewScreen extends StatefulWidget {
 
 class _ProductOverViewScreenState extends State<ProductOverViewScreen> {
   bool showOnlyFavorites = false;
+  // bool _isInit = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    // http.get();
+    setState(() {
+      _isLoading = true;
+    });
+    Provider.of<Products>(context, listen: false)
+        .fetchAndSetProducts()
+        .then((_) {
+      setState(() {
+        _isLoading = false;
+      });
+    }); // Will work but not used rn.
+    // Future.delayed(Duration.zero) // Will also work
+    // .then((_) => Provider.of<Products>(context).fetchAndSetProducts());
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +84,12 @@ class _ProductOverViewScreenState extends State<ProductOverViewScreen> {
         ],
       ),
       drawer: AppDrawer(),
-      body: ProductsGrid(showOnlyFavorites),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator.adaptive(
+              backgroundColor: Colors.amber,
+            ))
+          : ProductsGrid(showOnlyFavorites),
     );
   }
 }
