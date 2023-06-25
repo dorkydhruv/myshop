@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:myshop/providers/auth.dart';
 import 'package:myshop/providers/carts.dart';
 import 'package:myshop/providers/orders.dart';
-import 'package:myshop/providers/product.dart';
+// import 'package:myshop/providers/product.dart';
 import 'package:myshop/screens/268%20auth_screen.dart';
+import 'package:myshop/screens/281%20splash_screen.dart';
 import 'package:myshop/screens/cart_screen.dart';
 import 'package:myshop/screens/edit_product_screen.dart';
 import 'package:myshop/screens/orders_screen.dart';
@@ -20,14 +21,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
         providers: [
-          ChangeNotifierProxyProvider<Auth, Products>(
-            create: (_) => Products(),
-            update: ((context, auth, previousProducts) => Products(auth.token!,
-                previousProducts == null ? [] : previousProducts.items)),
-          ),
-          ChangeNotifierProvider(create: (context) => Cart()),
-          ChangeNotifierProvider(create: (ctc) => Orders()),
           ChangeNotifierProvider(create: (tx) => Auth()),
+          ChangeNotifierProxyProvider<Auth, Products>(
+            create: (_) => Products(null, [], null),
+            update: ((context, auth, previousProducts) => Products(
+                auth.token,
+                previousProducts == null ? [] : previousProducts.items,
+                auth.userId)),
+          ),
+          // ChangeNotifierProvider(create: (context)=> ProductOverViewScreen()),
+          ChangeNotifierProvider(create: (context) => Cart()),
+          ChangeNotifierProxyProvider<Auth, Orders>(
+            create: (ctc) => Orders(null, [], null),
+            update: (context, auth, previousOrder) => Orders(auth.token!,
+                previousOrder == null ? [] : previousOrder.orders, auth.userId),
+          ),
         ],
         child: Consumer<Auth>(
           builder: (context, auth, _) => MaterialApp(
@@ -45,9 +53,19 @@ class MyApp extends StatelessWidget {
                       fontWeight: FontWeight.bold),
                 )),
             // initialRoute: AuthScreen.routeName,
-            home: auth.isAuth ? ProductOverViewScreen() : AuthScreen(),
+            home: auth.isAuth
+                ? ProductOverViewScreen()
+                : FutureBuilder(
+                    future: auth.tryAutoLogin(),
+                    builder: (ctx, authResultSnapshot) =>
+                        authResultSnapshot.connectionState ==
+                                ConnectionState.waiting
+                            ? SplashScreen()
+                            : AuthScreen(),
+                  ),
             routes: {
-              'project-overview': (context) => ProductOverViewScreen(),
+              ProductOverViewScreen.routeName: (context) =>
+                  ProductOverViewScreen(),
               ProductDetailScreen.routeName: (context) => ProductDetailScreen(),
               CartScreen.routeName: (context) => CartScreen(),
               OrdersScreen.routeName: (context) => OrdersScreen(),
